@@ -3,11 +3,17 @@ public class Banco {
     public CuentaBancaria[] cuentas;
     public int TotalCuentas;
 
+    public Banco(String nombre) {
+        this.nombre = nombre;
+        this.cuentas = new CuentaBancaria[10];
+    }
 
-    public CuentaBancaria crearCuenta(CuentaBancaria cuentaNueva) {
-        System.out.println("Cuenta nueva de: " + cuentaNueva.nombre);
 
-        return cuentaNueva;
+    public void crearCuenta(CuentaBancaria cuentaNueva) {
+        cuentas[TotalCuentas] = cuentaNueva;
+        TotalCuentas++;
+        System.out.println("Se ha creado la cuenta de: " + cuentaNueva.nombre);
+
     }
 
     public void editarCuenta(CuentaBancaria cuenta,String nombre, String direccion) {
@@ -17,8 +23,12 @@ public class Banco {
     }
 
 
-    public void mostrarTodasLasCuentas(CuentaBancaria cuentas) {
+    public void mostrarTodasLasCuentas() {
+        System.out.println("Listado de todas las cuentas:");
+        for (int i = 0; i < TotalCuentas; i++){
+            cuentas[i].mostrarDatos();
 
+        }
     }
 
 }

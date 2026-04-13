@@ -1,21 +1,21 @@
 public class Main {
     static void main(String[] args) {
 
-        CuentaBancaria objCuenta1 = new CuentaBancaria("Josue", "Direccion 123", "Ahorro");
-        CuentaBancaria objCuenta2 = new CuentaBancaria("Carlos", "otra direccion 123", "Ahorro");
+        Banco admin = new Banco("AdminRoberto");
 
-        Banco admin = new Banco();
-        CuentaBancaria cuentaxd = admin.crearCuenta(new CuentaBancaria("Jose roberto", "Direccion 123", "Ahorro"));
 
-        objCuenta1.agregarSaldo(200);
+        admin.crearCuenta(new CuentaBancaria(12345678,"Josue", "Direccion 123", "Ahorro"));
+        admin.crearCuenta(new CuentaBancaria( 11122212,"Carlos", "otra direccion 123", "Ahorro"));
 
-        objCuenta1.transferir(objCuenta2, 20);
+        System.out.println("-------------------------------------------------------------------");
 
-        objCuenta1.mostrarDatos();
-        objCuenta2.mostrarDatos();
+        admin.cuentas[0].agregarSaldo(200);
+        admin.cuentas[0].transferir(admin.cuentas[1],20);
 
-        admin.editarCuenta(objCuenta1, "nuevo josue",  "Direccion nueva");
-        objCuenta1.mostrarDatos();
+        admin.mostrarTodasLasCuentas();
+
+
+
 
     }
 }

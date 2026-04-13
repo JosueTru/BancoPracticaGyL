@@ -3,8 +3,11 @@ public class CuentaBancaria {
     public String direccion;
     public String tipoDeCuenta;
     public double saldo;
+    public int dni;
 
-    public CuentaBancaria(String nombre, String direccion, String tipoDeCuenta) {
+    public CuentaBancaria(int dni,String nombre, String direccion, String tipoDeCuenta) {
+
+        this.dni = dni;
         this.nombre = nombre;
         this.direccion = direccion;
         this.tipoDeCuenta = tipoDeCuenta;
@@ -22,6 +25,7 @@ public class CuentaBancaria {
 
     public void agregarSaldo(double monto) {
         this.saldo += monto;
+
     }
 
     public void transferir(CuentaBancaria cuenta, double valor) {
