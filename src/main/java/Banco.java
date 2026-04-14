@@ -1,34 +1,42 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Banco {
-    public String nombre;
-    public CuentaBancaria[] cuentas;
-    public int TotalCuentas;
+
+    String nombre;
+    List<Sucursal> sucursales = new ArrayList<Sucursal>();
 
     public Banco(String nombre) {
         this.nombre = nombre;
-        this.cuentas = new CuentaBancaria[10];
     }
 
-
-    public void crearCuenta(CuentaBancaria cuentaNueva) {
-        cuentas[TotalCuentas] = cuentaNueva;
-        TotalCuentas++;
-        System.out.println("Se ha creado la cuenta de: " + cuentaNueva.nombre);
-
+    // Busca una sucursal por nombre
+    public Sucursal buscarSucursal(String nombre) {
+        for (Sucursal s : sucursales) {
+            if (s.nombre.equalsIgnoreCase(nombre)) {
+                return s;
+            }
+        }
+        return null;
     }
 
-    public void editarCuenta(CuentaBancaria cuenta,String nombre, String direccion) {
-        System.out.println("Editando datos de la cuenta de: " + cuenta.nombre);
-        cuenta.nombre = nombre;
-        cuenta.direccion = direccion;
+    // Busca una cuenta en TODAS las sucursales
+    public Cuenta buscarCuenta(String id) {
+        for (Sucursal s : sucursales) {
+            Cuenta c = s.buscarCuenta(id);
+            if (c != null) return c;
+        }
+        return null;
     }
 
-
-    public void mostrarTodasLasCuentas() {
-        System.out.println("Listado de todas las cuentas:");
-        for (int i = 0; i < TotalCuentas; i++){
-            cuentas[i].mostrarDatos();
-
+    public void mostrarTodo() {
+        System.out.println("===== " + nombre + " =====");
+        if (sucursales.isEmpty()) {
+            System.out.println("Sin sucursales registradas.");
+            return;
+        }
+        for (Sucursal s : sucursales) {
+            s.mostrar();
         }
     }
-
 }
