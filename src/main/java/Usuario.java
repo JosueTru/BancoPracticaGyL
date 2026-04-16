@@ -3,14 +3,15 @@ public class Usuario {
     String nombre;
     String apellido;
     String email;
+    String contrasena;
 
-    public Usuario(String nombre, String apellido, String email) {
-        this.nombre   = nombre;
-        this.apellido = apellido;
-        this.email    = email;
+    public Usuario(String nombre, String apellido, String email, String contrasena) {
+        this.nombre     = nombre;
+        this.apellido   = apellido;
+        this.email      = email;
+        this.contrasena = contrasena;
     }
 
-    // Muestra los datos del titular por pantalla
     public void mostrar() {
         System.out.println("  Titular : " + nombre + " " + apellido);
         System.out.println("  Email   : " + email);

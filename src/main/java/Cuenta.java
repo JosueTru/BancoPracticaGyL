@@ -11,22 +11,23 @@ public class Cuenta {
     boolean activa;
     String  nombreSucursal;
     Usuario titular;
-    // Lista que registra cada operación realizada (historial)
+
+    // Lista historial
     List<String> movimientos = new ArrayList<String>();
 
 
 
     // Se crea la cuenta con un DNI, tipo, saldo inicial, sucursal y titular
-    public Cuenta(String dni, String tipo, double saldoInicial, String nombreSucursal, Usuario titular) {
+    public Cuenta(String dni, String tipo, String nombreSucursal, Usuario titular) {
         this.dni            = dni;
         this.tipo           = tipo;
-        this.saldo          = saldoInicial;
+        this.saldo          = 0;
         this.nombreSucursal = nombreSucursal;
         this.titular        = titular;
         this.activa         = true;  // Toda cuenta empieza activa
 
         // El primer movimiento registrado es la apertura de la cuenta
-        movimientos.add("Apertura de cuenta con $" + saldoInicial);
+        movimientos.add("Apertura de cuenta.");
     }
 
 
@@ -61,9 +62,8 @@ public class Cuenta {
     }
 
     // Transferir: mueve dinero de esta cuenta a otra
-    // La cuenta destino puede estar en cualquier sucursal
     public void transferir(Cuenta destino, double monto) {
-        // Validación: ambas cuentas deben estar activas
+
         if (!activa) {
             System.out.println("La cuenta origen está dada de baja. No se puede transferir.");
             return;
@@ -72,7 +72,7 @@ public class Cuenta {
             System.out.println("La cuenta destino está dada de baja. No se puede transferir.");
             return;
         }
-        // no se puede transferir más de lo que hay
+        // Validación
         if (monto > saldo) {
             System.out.println("Saldo insuficiente para transferir.");
             return;
@@ -89,7 +89,7 @@ public class Cuenta {
         System.out.println("Transferencia exitosa de $" + monto + " a DNI " + destino.dni);
     }
 
-    // Dar de baja
+    // Dar de baja: desactiva la cuenta
     public void darDeBaja() {
         if (!activa) {
             System.out.println("La cuenta ya estaba dada de baja.");
@@ -102,7 +102,7 @@ public class Cuenta {
 
 
 
-    // Muestra todos los datos de la cuenta
+    // Muestra todos los datos de la cuenta y su historial completo
     public void verEstado() {
         System.out.println("-----------------------------");
         System.out.println("DNI      : " + dni);
@@ -118,7 +118,7 @@ public class Cuenta {
         System.out.println("-----------------------------");
     }
 
-    // Muestra solo la info
+    // Muestra solo la info esencial
     public void verResumen() {
         System.out.println("  [DNI: " + dni + "] " + tipo + " | $" + saldo
                 + " | " + titular.nombre + " " + titular.apellido

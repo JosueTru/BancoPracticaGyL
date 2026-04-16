@@ -4,113 +4,142 @@ public class Main {
 
 
 
-    static Scanner sc    = new Scanner(System.in);
-    static Banco   banco = new Banco("Banco"); // El bancp
+    static Scanner sc     = new Scanner(System.in);
+    static Banco   banco  = new Banco("Banco");
+    static Sesion  sesion = new Sesion();
 
+    static Menu menu = new Menu(sesion);
+
+    static final String ADMIN_USUARIO   = "admin";
+    static final String ADMIN_CONTRASENA = "1234";
 
     public static void main(String[] args) {
         System.out.println("=== BANCO ===");
 
         int opcion;
         do {
-            System.out.println("\n¿Qué desea hacer?");
-            System.out.println("1. Gestionar sucursales");
-            System.out.println("2. Gestionar cuentas");
-            System.out.println("3. Operaciones de cuenta");
-            System.out.println("4. Ver todo el banco");
-            System.out.println("0. Salir");
+
+            menu.mostrar();
+
             System.out.print("Opción: ");
             opcion = leerInt();
-
-            switch (opcion) {
-                case 1: menuSucursales();   break;
-                case 2: menuCuentas();      break;
-                case 3: menuOperaciones();  break;
-                case 4: banco.mostrarTodo(); break;
-                case 0: System.out.println("¡Hasta luego!"); break;
-                default: System.out.println("Opción inválida.");
-            }
+            manejarOpcion(opcion);
 
         } while (opcion != 0);
     }
 
 
-    //  MENÚ: SUCURSALES
-    //  Permite crear, eliminar y ver sucursales del banco.
 
+    // Decide qué hacer según la opción y el rol actual
+    static void manejarOpcion(int opcion) {
+        if (opcion == 0) {
+            System.out.println("¡Hasta luego!");
+            return;
+        }
 
-    static void menuSucursales() {
-        System.out.println("\n-- SUCURSALES --");
-        System.out.println("1. Crear sucursal");
-        System.out.println("2. Eliminar sucursal");
-        System.out.println("3. Ver sucursales");
-        System.out.print("Opción: ");
+        if (opcion == 9 && sesion.logueado) {
+            sesion.cerrar();
+            return;
+        }
 
-        switch (leerInt()) {
+        if (!sesion.logueado) {
+            manejarSinLoguear(opcion);
 
-            case 1:
-                // ── Crear sucursal ──────────────────────────
-                System.out.print("Nombre de la sucursal: ");
-                String nombre = sc.nextLine().trim();
-                banco.sucursales.add(new Sucursal(nombre));
-                System.out.println("Sucursal '" + nombre + "' creada.");
-                break;
+        } else if (sesion.esAdmin()) {
+            manejarAdmin(opcion);
 
-            case 2:
-                // ── Eliminar sucursal ───────────────────────
-                banco.mostrarTodo();
-                System.out.print("Nombre a eliminar: ");
-                String nombreEliminar = sc.nextLine().trim();
-                Sucursal s = banco.buscarSucursal(nombreEliminar);
-                if (s == null) {
-                    System.out.println("No se encontró esa sucursal.");
-                } else {
-                    banco.sucursales.remove(s);
-                    System.out.println("Sucursal eliminada.");
-                }
-                break;
-
-            case 3:
-                // ── Ver todas las sucursales ────────────────
-                banco.mostrarTodo();
-                break;
-
-            default:
-                System.out.println("Opción inválida.");
+        } else if (sesion.esUsuario()) {
+            manejarUsuario(opcion);
         }
     }
 
-    // ==========================================================
-    //  MENÚ: CUENTAS
-    //  Permite crear, eliminar y editar cuentas bancarias.
-    // ==========================================================
 
-    static void menuCuentas() {
-        System.out.println("\n-- CUENTAS --");
-        System.out.println("1. Crear cuenta");
-        System.out.println("2. Eliminar cuenta");
-        System.out.println("3. Editar cuenta");
-        System.out.println("4. Dar de baja una cuenta");
-        System.out.print("Opción: ");
 
-        switch (leerInt()) {
-            case 1: crearCuenta();      break;
-            case 2: eliminarCuenta();   break;
-            case 3: editarCuenta();     break;
-            case 4: darDeBajaCuenta();  break;
+    static void manejarSinLoguear(int opcion) {
+        switch (opcion) {
+            case 1: loginUsuario(); break;
+            case 2: loginAdmin();   break;
+            case 3: banco.mostrarSoloSucursales(); break;  // Solo nombres, sin datos de cuentas
+            case 4: crearCuenta();  break;
             default: System.out.println("Opción inválida.");
         }
     }
 
-    // ── Crear cuenta ───────────────────────────────────────────
+    // ── Login usuario ──────────────────────────────────────────
+    static void loginUsuario() {
+        System.out.print("DNI: ");
+        String dni = sc.nextLine().trim();
+
+        Cuenta cuenta = banco.buscarCuenta(dni);
+        if (cuenta == null) {
+            System.out.println("No existe una cuenta con ese DNI.");
+            return;
+        }
+        if (!cuenta.activa) {
+            System.out.println("Esa cuenta está dada de baja.");
+            return;
+        }
+
+        System.out.print("Contraseña: ");
+        String contrasena = sc.nextLine().trim();
+
+        if (!cuenta.titular.contrasena.equals(contrasena)) {
+            System.out.println("Contraseña incorrecta.");
+            return;
+        }
+
+        sesion.iniciarComoUsuario(cuenta);
+        System.out.println("Bienvenido, " + cuenta.titular.nombre + "!");
+    }
+
+    // ── Login admin ────────────────────────────────────────────
+    static void loginAdmin() {
+        System.out.print("Usuario: ");
+        String usuario = sc.nextLine().trim();
+        System.out.print("Contraseña: ");
+        String contrasena = sc.nextLine().trim();
+
+        if (!usuario.equals(ADMIN_USUARIO) || !contrasena.equals(ADMIN_CONTRASENA)) {
+            System.out.println("Credenciales incorrectas.");
+            return;
+        }
+
+        sesion.iniciarComoAdmin();
+        System.out.println("Bienvenido, Admin!");
+    }
+
+
+    //  Opciones del admin
+
+    static void manejarAdmin(int opcion) {
+        switch (opcion) {
+            case 1: menuCuentas();       break;
+            case 2: banco.mostrarTodo(); break;
+            default: System.out.println("Opción inválida.");
+        }
+    }
+
+    // ── Opciones de la gestion cuentas ──────────────────────────────────────
+
+    static void menuCuentas() {
+        System.out.println("\n-- CUENTAS --");
+        System.out.println("1. Crear  2. Editar  3. Dar de baja");
+        System.out.print("Opción: ");
+
+        switch (leerInt()) {
+            case 1: crearCuenta();     break;
+            case 2: editarCuenta();    break;
+            case 3: darDeBajaCuenta(); break;
+            default: System.out.println("Opción inválida.");
+        }
+    }
+
     static void crearCuenta() {
-        // Primero verificamos que haya al menos una sucursal
         if (banco.sucursales.isEmpty()) {
             System.out.println("Primero cree una sucursal.");
             return;
         }
 
-        // El usuario elige en qué sucursal crear la cuenta
         banco.mostrarTodo();
         System.out.print("Nombre de la sucursal: ");
         Sucursal sucursal = banco.buscarSucursal(sc.nextLine().trim());
@@ -119,59 +148,30 @@ public class Main {
             return;
         }
 
-        // Tipo de cuenta
         System.out.print("Tipo de cuenta (Ahorro / Corriente): ");
         String tipo = sc.nextLine().trim();
 
-        // Saldo inicial
-        System.out.print("Saldo inicial: $");
-        double saldo = leerDouble();
 
-        // DNI del titular
+
         System.out.print("DNI del titular: ");
         String dni = sc.nextLine().trim();
-
-        // Validación: el DNI no puede estar ya registrado en el banco
         if (banco.buscarCuenta(dni) != null) {
             System.out.println("Ya existe una cuenta con ese DNI.");
             return;
         }
 
-        // Resto de datos del titular
-        System.out.print("Nombre del titular: ");
-        String nombre = sc.nextLine().trim();
-        System.out.print("Apellido del titular: ");
-        String apellido = sc.nextLine().trim();
-        System.out.print("Email del titular: ");
-        String email = sc.nextLine().trim();
+        System.out.print("Nombre: ");      String nombre    = sc.nextLine().trim();
+        System.out.print("Apellido: ");    String apellido  = sc.nextLine().trim();
+        System.out.print("Email: ");       String email     = sc.nextLine().trim();
+        System.out.print("Contraseña: ");  String contrasena = sc.nextLine().trim();
 
-
-        Usuario titular = new Usuario(nombre, apellido, email);
-        Cuenta cuenta   = new Cuenta(dni, tipo, saldo, sucursal.nombre, titular);
+        Usuario titular = new Usuario(nombre, apellido, email, contrasena);
+        Cuenta cuenta   = new Cuenta(dni, tipo, sucursal.nombre, titular);
         sucursal.cuentas.add(cuenta);
 
         System.out.println("Cuenta creada para DNI " + dni + " en " + sucursal.nombre);
     }
 
-    // ── Eliminar cuenta ────────────────────────────────────────
-    static void eliminarCuenta() {
-        banco.mostrarTodo();
-        System.out.print("DNI de la cuenta a eliminar: ");
-        String dni = sc.nextLine().trim();
-
-        // Busca la cuenta en todas las sucursales y la elimina
-        for (Sucursal s : banco.sucursales) {
-            Cuenta c = s.buscarCuenta(dni);
-            if (c != null) {
-                s.cuentas.remove(c);
-                System.out.println("Cuenta de DNI " + dni + " eliminada.");
-                return;
-            }
-        }
-        System.out.println("Cuenta no encontrada.");
-    }
-
-    // ── Editar cuenta ──────────────────────────────────────────
     static void editarCuenta() {
         banco.mostrarTodo();
         System.out.print("DNI de la cuenta a editar: ");
@@ -181,23 +181,21 @@ public class Main {
             return;
         }
 
-        // Si el usuario presiona Enter sin escribir nada, se mantiene el valor actual
         System.out.print("Nuevo tipo (Enter para mantener '" + cuenta.tipo + "'): ");
         String tipo = sc.nextLine().trim();
         if (!tipo.isEmpty()) cuenta.tipo = tipo;
 
-        System.out.print("Nuevo nombre titular (Enter para mantener '" + cuenta.titular.nombre + "'): ");
+        System.out.print("Nuevo nombre (Enter para mantener '" + cuenta.titular.nombre + "'): ");
         String nombre = sc.nextLine().trim();
         if (!nombre.isEmpty()) cuenta.titular.nombre = nombre;
 
-        System.out.print("Nuevo apellido titular (Enter para mantener '" + cuenta.titular.apellido + "'): ");
+        System.out.print("Nuevo apellido (Enter para mantener '" + cuenta.titular.apellido + "'): ");
         String apellido = sc.nextLine().trim();
         if (!apellido.isEmpty()) cuenta.titular.apellido = apellido;
 
         System.out.println("Cuenta actualizada.");
     }
 
-    // ── Dar de baja cuenta ─────────────────────────────────────
     static void darDeBajaCuenta() {
         banco.mostrarTodo();
         System.out.print("DNI de la cuenta a dar de baja: ");
@@ -209,55 +207,45 @@ public class Main {
         cuenta.darDeBaja();
     }
 
+    //  OPCIONES USUARIO
 
-    //  El usuario ingresa un DNI y elige qué operación hacer.
 
+    static void manejarUsuario(int opcion) {
+        // La cuenta sobre la que opera es siempre la del usuario logueado
+        Cuenta cuenta = sesion.cuentaActiva;
 
-    static void menuOperaciones() {
-        // Primero mostramos todas las cuentas para que el usuario sepa qué DNI usar
-        banco.mostrarTodo();
-        System.out.print("\nDNI de la cuenta: ");
-        Cuenta cuenta = banco.buscarCuenta(sc.nextLine().trim());
-        if (cuenta == null) {
-            System.out.println("Cuenta no encontrada.");
-            return;
-        }
-
-        System.out.println("\n1. Depositar");
-        System.out.println("2. Retirar");
-        System.out.println("3. Transferir");
-        System.out.println("4. Ver estado");
-        System.out.print("Opción: ");
-
-        switch (leerInt()) {
-
+        switch (opcion) {
             case 1:
-                // ── Depositar ───────────────────────────────
+                // Ver su propia cuenta
+                cuenta.verEstado();
+                break;
+
+            case 2:
+                // Depositar en su cuenta
                 System.out.print("Monto a depositar: $");
                 cuenta.depositar(leerDouble());
                 break;
 
-            case 2:
-                // ── Retirar ─────────────────────────────────
+            case 3:
+                // Retirar de su cuenta
                 System.out.print("Monto a retirar: $");
                 cuenta.retirar(leerDouble());
                 break;
 
-            case 3:
-                // ── Transferir ──────────────────────────────
+            case 4:
+                // Transferir a otra cuenta (busca por DNI destino)
                 System.out.print("DNI de la cuenta destino: ");
                 Cuenta destino = banco.buscarCuenta(sc.nextLine().trim());
                 if (destino == null) {
                     System.out.println("Cuenta destino no encontrada.");
                     return;
                 }
+                if (destino.dni.equals(cuenta.dni)) {
+                    System.out.println("No puede transferir a su propia cuenta.");
+                    return;
+                }
                 System.out.print("Monto a transferir: $");
                 cuenta.transferir(destino, leerDouble());
-                break;
-
-            case 4:
-                // ── Ver estado completo ─────────────────────
-                cuenta.verEstado();
                 break;
 
             default:
@@ -266,17 +254,12 @@ public class Main {
     }
 
 
-    //  UTILIDADES DE LECTURA
-    //  Evitan que el programa explote si el usuario escribe algo que no es un número.
+    //  utilidades leerInt y Double limpio
 
-
-
-    // Lee un número entero desde el teclado
     static int leerInt() {
         return Integer.parseInt(sc.nextLine().trim());
     }
 
-    // Lee un número decimal desde el teclado
     static double leerDouble() {
         return Double.parseDouble(sc.nextLine().trim());
     }
